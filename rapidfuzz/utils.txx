@@ -141,23 +141,50 @@ StringAffix utils::remove_common_affix(basic_string_view<CharT1>& a, basic_strin
 }
 
 template <typename Sentence1, typename Sentence2>
-std::size_t utils::count_uncommon_chars(const Sentence1& s1, const Sentence2& s2)
+std::size_t utils::count_uncommon_chars(Sentence1 s1, Sentence2 s2)
 {
-  std::array<signed int, 32> char_freq{};
-  for (const auto& ch : s1) {
-    ++char_freq[ch % 32];
+  if (s1.empty()) {
+    return s2.size();
+  }
+  if (s2.empty()) {
+    return s1.size();
   }
 
-  for (const auto& ch : s2) {
-    --char_freq[ch % 32];
-  }
+  std::sort(s1.begin(), s1.end());
+  std::sort(s2.begin(), s2.end());
 
   std::size_t count = 0;
-  for (const auto& freq : char_freq) {
-    count += std::abs(freq);
-  }
+  std::size_t pos_s1 = 0;
+  std::size_t pos_s2 = 0;
 
-  return count;
+  while (true) {
+    while (s1[pos_s1] == s2[pos_s2]) {
+      ++pos_s1;
+      ++pos_s2;
+      if (pos_s1 == s1.size()) {
+        return count + s2.size() - pos_s2;
+      }
+      if (pos_s2 == s2.size()) {
+        return count + s1.size() - pos_s1;
+      }
+    }
+
+    while (s1[pos_s1] < s2[pos_s2]) {
+      ++count;
+      ++pos_s1;
+      if (pos_s1 == s1.size()) {
+        return count + s2.size() - pos_s2;
+      }
+    }
+
+    while (s1[pos_s1] > s2[pos_s2]) {
+      ++count;
+      ++pos_s2;
+      if (pos_s2 == s2.size()) {
+        return count + s1.size() - pos_s1;
+      }
+    }
+  }
 }
 
 template <typename Sentence, typename CharT>
